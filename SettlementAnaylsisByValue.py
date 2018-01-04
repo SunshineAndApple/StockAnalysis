@@ -94,44 +94,32 @@ class Analysis(object):
 
 class B2(Analysis):
     def HandleReuqest(self, request):
-        if request.isAnalysis == False and request.level == 'B2':
-            print('b2')
-            if self.successor != None:
-                #下一级
-                request.level = 'B1'
-                request.isAnalysis = False
-                self.successor.handleReuqest(request)
+        print('b2')
+        if self.successor != None:
+            self.successor.handleReuqest(request)
 
 class B1(Analysis):
     def HandleReuqest(self, request):
-        if request.isAnalysis == False and request.level == 'B1':
-            print('b1')
-            if self.successor != None:
-                request.level = 'A3'
-                request.isAnalysis = False
-                self.successor.handleReuqest(request)
+        print('b1')
+        if self.successor != None:
+            self.successor.handleReuqest(request)
 
 class A3(Analysis):
     def HandleReuqest(self, request):
-        if request.isAnalysis == False and request.level == 'A3':
-            print('a3')
-            if self.successor != None:
-                request.level = 'B3'
-                request.isAnalysis = False
-                self.successor.handleReuqest(request)
+        print('a3')
+        if self.successor != None:
+            self.successor.handleReuqest(request)
 
 class B3(Analysis):
     def HandleReuqest(self, request):
-        if request.isAnalysis == False and request.level == 'B3':
-            print('b3')
-            if self.successor != None:
-                request.level = 'A4'
-                request.isAnalysis = False
-                self.successor.handleReuqest(request)
+        print('b3')
+        if self.successor != None:
+            self.successor.handleReuqest(request)
 
 class A4(Analysis):
     def HandleReuqest(self, request):
-        if request.isAnalysis == False and request.level == 'A4':
+        if self.successor != None:
             print('a4')
+
 
 

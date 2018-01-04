@@ -22,21 +22,27 @@ class Analysis(object):
 
 class A(Analysis):
     def HandleReuqest(self, request):
+        if self.successor != None:
+            print('a')
+            self.successor.HandleReuqest(request)
+            '''
         if request.isAnalysis == False and request.level == 'A':
             print('a')
             if self.successor != None:
                 request.level = 'B'
                 request.isAnalysis = False
-                self.successor.HandleReuqest(request)
+                self.successor.HandleReuqest(request)'''
 
 class B(Analysis):
     def HandleReuqest(self, request):
+        print('b')
+        '''
         if request.isAnalysis == False and request.level == 'B':
             print('b')
             if self.successor != None:
                 request.level = 'B'
                 request.isAnalysis = False
-                #self.successor.HandleReuqest(request)
+                #self.successor.HandleReuqest(request)'''
 
 class Client(object):
     a = A('A')
