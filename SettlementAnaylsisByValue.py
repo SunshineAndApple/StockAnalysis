@@ -3,6 +3,7 @@
 __author_ = 'ly'
 
 import Common
+import ConfigManegment
 
 class SettlementAnalysisByValue(object):
     #输入数据，未拆分。列格式为"日期,开盘,最高,最低,收盘,成交量,成交额
@@ -10,7 +11,6 @@ class SettlementAnalysisByValue(object):
     #拆分后的数据值,只取_dataListAll中收盘一列，因为_dataListAll和_dataList的总数量
     #保持一致，所以迭代中如果需要其他数据，可以用_dataList的索引到_dataListAll中取
     _dataList = []
-
 
     def __init__(self, dataList=None):
         if dataList is None:
@@ -55,8 +55,10 @@ class SettlementAnalysisByValue(object):
         request.isAnalysis = False
         request.level = 'B2'
         request.resultList[0] = min(self._dataList)
+        request.valueList = self._dataList
         #执行分析
         b2.handleReuqest(request)
+        #获取结果
         zero = 1
         for var in request.resultList:
             zero = zero | var
@@ -74,6 +76,8 @@ class Request(object):
     level = None
     # a2, b2, b1, a3, b3, a4序列为查找序列
     resultList = [0, 0, 0, 0, 0, 0]
+    #valueList = SettlementAnalysisByValue._dataList
+    valueList = None
 
     def getVarNameFromList(self, index):
         switcher = {0:'a2', 1:'b2', 2:'b1', 3:'a3', 4:'b3', 5:'a4'}
@@ -93,33 +97,122 @@ class Analysis(object):
         pass
 
 class B2(Analysis):
-    def HandleReuqest(self, request):
+    def handleReuqest(self, request):
         print('b2')
+        #b1 a2 b2
+        #min value
+        startIndex = request.valueList.index(request[0])
+        #标准步长
+        step = ConfigManegment.ConfigManegment().getSearchStep()
+
+        if len(request.valueList) >= ((startIndex + step*2)):
+            endIndex = (startIndex + step*2)
+        else:
+            endIndex = len(request.valueList)
+        # 切片是[a, a)，所以这里需要加1
+        request.resultList[1] = max(request.valueList[startIndex:endIndex+1])
+
         if self.successor != None:
             self.successor.handleReuqest(request)
 
 class B1(Analysis):
-    def HandleReuqest(self, request):
+    def handleReuqest(self, request):
         print('b1')
+        # b1 a2 b2
+        #min value
+        endIndex = request.valueList.index(request[0])
+        #标准步长
+        step = ConfigManegment.ConfigManegment().getSearchStep()
+
+        if 0 >= ((endIndex - step*2)):
+            startIndex = ndIndex - step*2
+        else:
+            startIndex = 0
+        request.resultList[2] = min(request.valueList[startIndex:endIndex])
+        #  (b2-8%b2) < b1 < (b2-5%b2)
+        if ((request.resultList[2] < (request.resultList[1]-request.resultList[1]*0.5)) and \
+                (request.resultList[2] > (request.resultList[1] - request.resultList[1] * 0.8))):
+            pass
+        else:
+            request.resultList[2] = 0
+
         if self.successor != None:
             self.successor.handleReuqest(request)
 
 class A3(Analysis):
-    def HandleReuqest(self, request):
+    def handleReuqest(self, request):
         print('a3')
+        #  a2 b2 a3
+        if 0 != request.resultList[2]:
+            # min value
+            startIndex = request.valueList.index(request[2])
+            # 标准步长
+            step = ConfigManegment.ConfigManegment().getSearchStep()
+
+            if len(request.valueList) >= ((startIndex + step * 2)):
+                endIndex = (startIndex + step * 2)
+            else:
+                endIndex = len(request.valueList)
+            # 切片是[a, a)，所以这里需要加1
+            request.resultList[3] = min(request.valueList[startIndex:endIndex + 1])
+        else:
+            pass
+
         if self.successor != None:
             self.successor.handleReuqest(request)
 
 class B3(Analysis):
     def HandleReuqest(self, request):
         print('b3')
+        #  b2 a3 b3
+        if 0 != request.resultList[3]:
+            # min value
+            startIndex = request.valueList.index(request[3])
+            # 标准步长
+            step = ConfigManegment.ConfigManegment().getSearchStep()
+
+            if len(request.valueList) >= ((startIndex + step * 2)):
+                endIndex = (startIndex + step * 2)
+            else:
+                endIndex = len(request.valueList)
+            # 切片是[a, a)，所以这里需要加1
+            request.resultList[4] = max(request.valueList[startIndex:endIndex + 1])
+        else:
+            pass
+
+        if (request.resultList[4] <= request.resultList[1]):
+            pass
+        else:
+            request.resultList[4] = 0
+
         if self.successor != None:
             self.successor.handleReuqest(request)
 
 class A4(Analysis):
-    def HandleReuqest(self, request):
+    def handleReuqest(self, request):
         if self.successor != None:
             print('a4')
+            #b3 a4
+            if 0 != request.resultList[4]:
+                # min value
+                startIndex = request.valueList.index(request[4])
+                # 标准步长
+                step = ConfigManegment.ConfigManegment().getSearchStep()
+
+                if len(request.valueList) >= ((startIndex + step * 2)):
+                    endIndex = (startIndex + step * 2)
+                else:
+                    endIndex = len(request.valueList)
+                # 切片是[a, a)，所以这里需要加1
+                request.resultList[5] = min(request.valueList[startIndex:endIndex + 1])
+            else:
+                pass
+
+            if (request.resultList[5] <= request.resultList[3]):
+                pass
+            else:
+                request.resultList[5] = 0
 
 
-
+if __name__ == '__main__':
+    pass

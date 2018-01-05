@@ -66,3 +66,5 @@ class Client(object):
 
 if __name__ == '__main__':
     c = Client()
+    l = [0, 1, 2, 3, 4, 5]
+    print(max(l[4:5+1]))
