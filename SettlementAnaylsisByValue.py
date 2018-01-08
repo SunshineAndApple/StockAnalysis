@@ -70,6 +70,18 @@ class SettlementAnalysisByValue(object):
         #不满足
         return False
 
+class ValueType(object):
+    MAX_VALUE = 0
+    MIN_VALUE = 1
+
+class ResultListIndex(object):
+    A2 = 0
+    B2 = 1
+    B1 = 2
+    A3 = 3
+    B3 = 4
+    A4 = 5
+
 #定义职责链
 class Request(object):
     isAnalysis = False
@@ -82,6 +94,37 @@ class Request(object):
     def getVarNameFromList(self, index):
         switcher = {0:'a2', 1:'b2', 2:'b1', 3:'a3', 4:'b3', 5:'a4'}
 
+    #type:取值类型：max min
+    #sorStartIndex: 开始目标resultListIndex的索引
+    #targetIndex: resultListIndex目标值的索引
+    def getMaxOrMinValue(self, type, resultListIndex, targetIndex):
+        if 0 != request.resultList[resultListIndex]:
+            # 标准步长
+            step = ConfigManegment.ConfigManegment().getSearchStep()
+
+            if (ResultListIndex.A2.value == resultListIndex) \
+                    and (ResultListIndex.B1.value == targetIndex):
+                # A2
+                endIndex = request.valueList.index(request[resultListIndex])
+                if 0 <= ((endIndex - step * 2)):
+                    startIndex = ndIndex - step * 2
+                else:
+                    startIndex = 0
+            else:
+                startIndex = request.valueList.index(request[resultListIndex])
+                if len(request.valueList) >= ((startIndex + step * 2)):
+                    endIndex = (startIndex + step * 2)
+                else:
+                    endIndex = len(request.valueList)
+
+            # 切片是[a, a)，所以这里需要加1
+            if ValueType.MAX_VALUE == type:
+                request.resultList[targetIndex] = max(request.valueList[startIndex:endIndex + 1])
+            elif ValueType.MIN_VALUE == type:
+                request.resultList[targetIndex] = min(request.valueList[startIndex:endIndex + 1])
+
+        else:
+            pass
 
 class Analysis(object):
     successor = None
@@ -100,17 +143,7 @@ class B2(Analysis):
     def handleReuqest(self, request):
         print('b2')
         #b1 a2 b2
-        #min value
-        startIndex = request.valueList.index(request[0])
-        #标准步长
-        step = ConfigManegment.ConfigManegment().getSearchStep()
-
-        if len(request.valueList) >= ((startIndex + step*2)):
-            endIndex = (startIndex + step*2)
-        else:
-            endIndex = len(request.valueList)
-        # 切片是[a, a)，所以这里需要加1
-        request.resultList[1] = max(request.valueList[startIndex:endIndex+1])
+        request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A2.value, ResultListIndex.B2.value)
 
         if self.successor != None:
             self.successor.handleReuqest(request)
@@ -119,22 +152,16 @@ class B1(Analysis):
     def handleReuqest(self, request):
         print('b1')
         # b1 a2 b2
-        #min value
-        endIndex = request.valueList.index(request[0])
-        #标准步长
-        step = ConfigManegment.ConfigManegment().getSearchStep()
+        request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A2.value, ResultListIndex.B1.value)
 
-        if 0 >= ((endIndex - step*2)):
-            startIndex = ndIndex - step*2
-        else:
-            startIndex = 0
-        request.resultList[2] = min(request.valueList[startIndex:endIndex])
-        #  (b2-8%b2) < b1 < (b2-5%b2)
-        if ((request.resultList[2] < (request.resultList[1]-request.resultList[1]*0.5)) and \
-                (request.resultList[2] > (request.resultList[1] - request.resultList[1] * 0.8))):
+        #  (b2-8%b2) < b1 < (b2+5%b2)
+        if ((request.resultList[ResultListIndex.B1.value] <
+             (request.resultList[ResultListIndex.B2.value]+request.resultList[ResultListIndex.B2.value]*0.5)) and
+                (request.resultList[ResultListIndex.B1.value] > (request.resultList[ResultListIndex.B2.value] -
+                                                                 request.resultList[ResultListIndex.B2.value] * 0.8))):
             pass
         else:
-            request.resultList[2] = 0
+            request.resultList[ResultListIndex.B1.value] = 0
 
         if self.successor != None:
             self.successor.handleReuqest(request)
@@ -143,20 +170,7 @@ class A3(Analysis):
     def handleReuqest(self, request):
         print('a3')
         #  a2 b2 a3
-        if 0 != request.resultList[2]:
-            # min value
-            startIndex = request.valueList.index(request[2])
-            # 标准步长
-            step = ConfigManegment.ConfigManegment().getSearchStep()
-
-            if len(request.valueList) >= ((startIndex + step * 2)):
-                endIndex = (startIndex + step * 2)
-            else:
-                endIndex = len(request.valueList)
-            # 切片是[a, a)，所以这里需要加1
-            request.resultList[3] = min(request.valueList[startIndex:endIndex + 1])
-        else:
-            pass
+        request.getMaxOrMinValue(ValueType.MIN_VALUE, ResultListIndex.B2.value, ResultListIndex.A3.value)
 
         if self.successor != None:
             self.successor.handleReuqest(request)
@@ -165,20 +179,7 @@ class B3(Analysis):
     def HandleReuqest(self, request):
         print('b3')
         #  b2 a3 b3
-        if 0 != request.resultList[3]:
-            # min value
-            startIndex = request.valueList.index(request[3])
-            # 标准步长
-            step = ConfigManegment.ConfigManegment().getSearchStep()
-
-            if len(request.valueList) >= ((startIndex + step * 2)):
-                endIndex = (startIndex + step * 2)
-            else:
-                endIndex = len(request.valueList)
-            # 切片是[a, a)，所以这里需要加1
-            request.resultList[4] = max(request.valueList[startIndex:endIndex + 1])
-        else:
-            pass
+        request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A3.value, ResultListIndex.B3.value)
 
         if (request.resultList[4] <= request.resultList[1]):
             pass
@@ -192,23 +193,9 @@ class A4(Analysis):
     def handleReuqest(self, request):
         if self.successor != None:
             print('a4')
-            #b3 a4
-            if 0 != request.resultList[4]:
-                # min value
-                startIndex = request.valueList.index(request[4])
-                # 标准步长
-                step = ConfigManegment.ConfigManegment().getSearchStep()
+            request.getMaxOrMinValue(ValueType.MIN_VALUE, ResultListIndex.B3.value, ResultListIndex.A4.value)
 
-                if len(request.valueList) >= ((startIndex + step * 2)):
-                    endIndex = (startIndex + step * 2)
-                else:
-                    endIndex = len(request.valueList)
-                # 切片是[a, a)，所以这里需要加1
-                request.resultList[5] = min(request.valueList[startIndex:endIndex + 1])
-            else:
-                pass
-
-            if (request.resultList[5] <= request.resultList[3]):
+            if (request.resultList[ResultListIndex.A3.value] <= request.resultList[ResultListIndex.A4.value]):
                 pass
             else:
                 request.resultList[5] = 0
