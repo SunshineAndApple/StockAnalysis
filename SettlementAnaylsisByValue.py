@@ -36,8 +36,8 @@ class SettlementAnalysisByValue(object):
     def analysisData(self):
         self.splitDataList()
         print('当前数据有：%d行' % len(self._dataList))
-        #print(self._dataList[0])
-        #print(minP = min(self._dataList))
+        print(self._dataList[0])
+        print('min value: %s' % min(self._dataList))
 
         #初始化职责链对象
         b2 = B2('B2')
@@ -45,6 +45,7 @@ class SettlementAnalysisByValue(object):
         a3 = B2('A3')
         b3 = B2('B3')
         a4 = A4('A4')
+        
         #设定执行顺序
         b2.setSuccessor(b1)
         b1.setSuccessor(a3)
@@ -56,14 +57,16 @@ class SettlementAnalysisByValue(object):
         request.level = 'B2'
         request.resultList[0] = min(self._dataList)
         request.valueList = self._dataList
+        #print(request.valueList)
         #执行分析
         b2.handleReuqest(request)
         #获取结果
         zero = 1
         for var in request.resultList:
-            zero = zero | var
-            if 0 != (var | 0):
-                print('第几个变量为符合： %s' % request.getVarNameFromList(request.resultList.index(var)))
+            zero = zero | int(var)
+            if 0 != (int(var) | 0):
+                #print(request.resultList)
+                print('节点%s有符合的值且值为： %s' % (request.getVarNameFromList(request.resultList.index(var)), var))
 
         if 0 != zero:
             return True
@@ -93,35 +96,39 @@ class Request(object):
 
     def getVarNameFromList(self, index):
         switcher = {0:'a2', 1:'b2', 2:'b1', 3:'a3', 4:'b3', 5:'a4'}
+        return switcher.get(index)
 
     #type:取值类型：max min
     #sorStartIndex: 开始目标resultListIndex的索引
     #targetIndex: resultListIndex目标值的索引
     def getMaxOrMinValue(self, type, resultListIndex, targetIndex):
-        if 0 != request.resultList[resultListIndex]:
+        if 0 != self.resultList[resultListIndex]:
             # 标准步长
             step = ConfigManegment.ConfigManegment().getSearchStep()
+            print(type, resultListIndex, targetIndex)
 
-            if (ResultListIndex.A2.value == resultListIndex) \
-                    and (ResultListIndex.B1.value == targetIndex):
+            if (ResultListIndex.A2 == resultListIndex) and (ResultListIndex.B1 == targetIndex):
                 # A2
-                endIndex = request.valueList.index(request[resultListIndex])
+                endIndex = self.valueList.index(self.request[resultListIndex])
+                print('if : endIndex')
                 if 0 <= ((endIndex - step * 2)):
                     startIndex = ndIndex - step * 2
                 else:
                     startIndex = 0
             else:
-                startIndex = request.valueList.index(request[resultListIndex])
-                if len(request.valueList) >= ((startIndex + step * 2)):
-                    endIndex = (startIndex + step * 2)
+                print('else : startIndex')
+                startIndex = self.valueList.index(self.resultList[resultListIndex])
+                print('startIndex: %d' % startIndex)
+                if len(self.valueList) >= ((int(startIndex) + int(step) * 2)):
+                    endIndex = (int(startIndex) + int(step) * 2)
                 else:
                     endIndex = len(request.valueList)
 
             # 切片是[a, a)，所以这里需要加1
             if ValueType.MAX_VALUE == type:
-                request.resultList[targetIndex] = max(request.valueList[startIndex:endIndex + 1])
+                self.resultList[targetIndex] = max(self.valueList[startIndex:endIndex + 1])
             elif ValueType.MIN_VALUE == type:
-                request.resultList[targetIndex] = min(request.valueList[startIndex:endIndex + 1])
+                self.resultList[targetIndex] = min(self.valueList[startIndex:endIndex + 1])
 
         else:
             pass
@@ -141,9 +148,9 @@ class Analysis(object):
 
 class B2(Analysis):
     def handleReuqest(self, request):
-        print('b2')
+        print('begin analysis b2')
         #b1 a2 b2
-        request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A2.value, ResultListIndex.B2.value)
+        request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A2, ResultListIndex.B2)
 
         if self.successor != None:
             self.successor.handleReuqest(request)

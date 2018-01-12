@@ -42,7 +42,8 @@ class AnalysisOneFile(object):
             #   去除头两行，保留纯数据
             self._InfoListAll = self._InfoListAll[2:]
             settlementAnaylsisByValue = SettlementAnaylsisByValue.SettlementAnalysisByValue(self._InfoListAll)
-            settlementAnaylsisByValue.analysisData()
+            return settlementAnaylsisByValue.analysisData()
+
 
         except Exception as e:
             raise
