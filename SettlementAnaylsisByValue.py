@@ -4,6 +4,11 @@ __author_ = 'ly'
 
 import Common
 import ConfigManegment
+import LogInfo
+import ConfigManegment
+
+
+
 
 class SettlementAnalysisByValue(object):
     #输入数据，未拆分。列格式为"日期,开盘,最高,最低,收盘,成交量,成交额
@@ -21,7 +26,7 @@ class SettlementAnalysisByValue(object):
     def splitDataList(self):
         for var in self._dataListAll:
             tempList = var.split(',')
-            self._dataList.append(tempList[Common.DataIndex.FINAL_PRICE.value])
+            self._dataList.append(int(tempList[Common.DataIndex.FINAL_PRICE.value]))
 
     #
     #                                           b2
@@ -35,9 +40,8 @@ class SettlementAnalysisByValue(object):
     # 解析数据
     def analysisData(self):
         self.splitDataList()
-        print('当前数据有：%d行' % len(self._dataList))
-        print(self._dataList[0])
-        print('min value: %s' % min(self._dataList))
+        LogInfo.LogInfo().debugLog('当前数据有：%d行' % len(self._dataList))
+        LogInfo.LogInfo().debugLog('当前最小值: %d' % min(self._dataList))
 
         #初始化职责链对象
         b2 = B2('B2')
@@ -66,7 +70,7 @@ class SettlementAnalysisByValue(object):
             zero = zero | int(var)
             if 0 != (int(var) | 0):
                 #print(request.resultList)
-                print('节点%s有符合的值且值为： %s' % (request.getVarNameFromList(request.resultList.index(var)), var))
+                LogInfo.LogInfo().debugLog('节点%s有符合的值且值为： %s' % (request.getVarNameFromList(request.resultList.index(var)), var))
 
         if 0 != zero:
             return True
@@ -116,9 +120,9 @@ class Request(object):
                 else:
                     startIndex = 0
             else:
-                print('else : startIndex')
+                LogInfo.LogInfo().debugLog('else : startIndex')
                 startIndex = self.valueList.index(self.resultList[resultListIndex])
-                print('startIndex: %d' % startIndex)
+                LogInfo.LogInfo().debugLog('startIndex: %d' % startIndex)
                 if len(self.valueList) >= ((int(startIndex) + int(step) * 2)):
                     endIndex = (int(startIndex) + int(step) * 2)
                 else:
@@ -148,7 +152,7 @@ class Analysis(object):
 
 class B2(Analysis):
     def handleReuqest(self, request):
-        print('begin analysis b2')
+        LogInfo.LogInfo().debugLog('开始分析b2')
         #b1 a2 b2
         request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A2, ResultListIndex.B2)
 
@@ -157,7 +161,7 @@ class B2(Analysis):
 
 class B1(Analysis):
     def handleReuqest(self, request):
-        print('b1')
+        LogInfo.LogInfo().debugLog('开始分析b1')
         # b1 a2 b2
         request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A2.value, ResultListIndex.B1.value)
 
@@ -175,7 +179,7 @@ class B1(Analysis):
 
 class A3(Analysis):
     def handleReuqest(self, request):
-        print('a3')
+        LogInfo.LogInfo().debugLog('开始分析a3')
         #  a2 b2 a3
         request.getMaxOrMinValue(ValueType.MIN_VALUE, ResultListIndex.B2.value, ResultListIndex.A3.value)
 
@@ -184,7 +188,7 @@ class A3(Analysis):
 
 class B3(Analysis):
     def HandleReuqest(self, request):
-        print('b3')
+        LogInfo.LogInfo().debugLog('开始分析b3')
         #  b2 a3 b3
         request.getMaxOrMinValue(ValueType.MAX_VALUE, ResultListIndex.A3.value, ResultListIndex.B3.value)
 
@@ -199,7 +203,7 @@ class B3(Analysis):
 class A4(Analysis):
     def handleReuqest(self, request):
         if self.successor != None:
-            print('a4')
+            LogInfo.LogInfo().debugLog('开始分析a4')
             request.getMaxOrMinValue(ValueType.MIN_VALUE, ResultListIndex.B3.value, ResultListIndex.A4.value)
 
             if (request.resultList[ResultListIndex.A3.value] <= request.resultList[ResultListIndex.A4.value]):

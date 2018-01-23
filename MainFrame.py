@@ -7,7 +7,7 @@ import os
 import sys
 import AnalysisOneStock
 import ConfigManegment
-import tkinter as tk
+import LogInfo
 
 class MainFrame(object):
     def main(self):
@@ -29,11 +29,12 @@ class MainFrame(object):
 
 
         #开始分析
+        LogInfo.LogInfo().infoLog('-----------')
         a = AnalysisOneStock.AnalysisOneFile(c.getTargetFolderPath(), 'SH#601877.txt')
         if True == a.readDataFromFile():
-            print("Ture")
+            LogInfo.LogInfo().infoLog('股票： 分析的结果为：满足')
         else:
-            print("False")
+            LogInfo.LogInfo().infoLog('股票： 分析的结果为：不满足')
 
 
 

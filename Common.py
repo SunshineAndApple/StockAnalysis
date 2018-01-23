@@ -23,3 +23,8 @@ class TitleIndex(Enum):
 class ReaslutOfAnalysis(Enum):
     FALSE = 0
     TRUE = 1
+
+@unique
+class LogLevel(Enum):
+    DEUBG_LOG = 5
+    INFO_LOG = 4
