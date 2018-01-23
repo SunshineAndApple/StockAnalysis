@@ -68,9 +68,9 @@ class SettlementAnalysisByValue(object):
         zero = 1
         for var in request.resultList:
             zero = zero | int(var)
+            LogInfo.LogInfo().debugLog('节点%s, 值为：%s' % (request.getVarNameFromList(request.resultList.index(var)), var))
             if 0 != (int(var) | 0):
-                #print(request.resultList)
-                LogInfo.LogInfo().debugLog('节点%s有符合的值且值为： %s' % (request.getVarNameFromList(request.resultList.index(var)), var))
+                pass
 
         if 0 != zero:
             return True

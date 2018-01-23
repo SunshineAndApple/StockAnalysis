@@ -29,7 +29,7 @@ class MainFrame(object):
 
 
         #开始分析
-        LogInfo.LogInfo().infoLog('-----------')
+        LogInfo.LogInfo().infoLog('------------------------------------------')
         a = AnalysisOneStock.AnalysisOneFile(c.getTargetFolderPath(), 'SH#601877.txt')
         if True == a.readDataFromFile():
             LogInfo.LogInfo().infoLog('股票： 分析的结果为：满足')
